@@ -90,8 +90,10 @@
       <div>a</div><div>b</div><div>c</div><div>d</div><div>e</div><div>f</div><div>g</div><div>h</div>
     </div>
   </div>
+
   <input type="text" id="fen" readonly />
   <button onclick="copyFEN()">📋 Copy FEN</button>
+  <button onclick="clearBoard()">🧹 Clear All</button>
 
   <script>
     const board = Array.from({ length: 8 }, () => Array(8).fill(''));
@@ -166,6 +168,16 @@
       document.execCommand('copy');
     }
 
+    function clearBoard() {
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          board[r][c] = '';
+        }
+      }
+      renderBoard();
+      updateFEN();
+    }
+
     function handleKeyDown(e) {
       if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter',' '].includes(e.key)) {
         e.preventDefault();
@@ -179,6 +191,8 @@
         case 'Enter':
         case ' ': board[selectedRow][selectedCol] = board[selectedRow][selectedCol] === selectedPiece ? '' : selectedPiece;
                   updateFEN(); break;
+        case 'Escape':
+          clearBoard(); break;
         default:
           const key = e.key;
           if (pieceMap[key]) {
