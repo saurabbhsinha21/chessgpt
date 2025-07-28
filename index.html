@@ -6,16 +6,55 @@
   <title>Ultra Fast FEN Generator</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 10px; }
+    #pieces {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      max-width: 360px;
+      margin: auto;
+      margin-bottom: 10px;
+    }
+    .piece-btn {
+      font-size: 26px;
+      padding: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      background: #eee;
+      border-radius: 6px;
+    }
+    .selected { border-color: red; background: #ddd; }
+
+    #board-wrapper {
+      display: inline-block;
+      position: relative;
+    }
+    #labels-col {
+      position: absolute;
+      left: -20px;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      height: 360px;
+      justify-content: space-between;
+    }
+    #labels-row {
+      margin-top: 2px;
+      display: flex;
+      justify-content: space-between;
+      width: 360px;
+      margin-left: 20px;
+    }
+    .label { font-weight: bold; }
+
     #board {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
       width: 360px;
-      margin: 10px auto;
+      height: 360px;
       border: 2px solid #444;
+      margin-left: 20px;
     }
     .square {
-      width: 45px;
-      height: 45px;
       font-size: 30px;
       display: flex;
       align-items: center;
@@ -29,25 +68,12 @@
     .selected-square {
       outline: 3px solid red;
     }
-    #pieces {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-      max-width: 340px;
-      margin: auto;
+
+    #controls {
+      margin-top: 10px;
     }
-    .piece-btn {
-      font-size: 26px;
-      padding: 6px;
-      cursor: pointer;
-      border: 2px solid transparent;
-      background: #eee;
-      border-radius: 6px;
-    }
-    .selected { border-color: red; background: #ddd; }
     #fen {
       width: 92%;
-      margin-top: 10px;
       font-family: monospace;
       font-size: 16px;
       padding: 5px;
@@ -58,10 +84,23 @@
   <h2>♟️ Ultra-Fast Chess FEN Generator</h2>
 
   <div id="pieces"></div>
-  <div id="board"></div>
 
-  <input type="text" id="fen" readonly />
-  <button onclick="copyFEN()">📋 Copy FEN</button>
+  <div id="board-wrapper">
+    <div id="labels-col">
+      ${[8,7,6,5,4,3,2,1].map(n => `<div class="label">${n}</div>`).join('')}
+    </div>
+    <div id="board"></div>
+  </div>
+  <div id="labels-row">
+    ${['a','b','c','d','e','f','g','h'].map(l => `<div class="label">${l}</div>`).join('')}
+  </div>
+
+  <div id="controls">
+    <input type="text" id="fen" readonly />
+    <br>
+    <button onclick="copyFEN()">📋 Copy FEN</button>
+    <button onclick="clearAll()">🧹 Clear All</button>
+  </div>
 
   <script>
     const board = Array.from({ length: 8 }, () => Array(8).fill(''));
@@ -100,6 +139,8 @@
         for (let col = 0; col < 8; col++) {
           const square = document.createElement('div');
           square.className = `square ${(row + col) % 2 === 0 ? 'white' : 'black'}`;
+          square.style.width = '45px';
+          square.style.height = '45px';
           if (row === selectedRow && col === selectedCol) {
             square.classList.add('selected-square');
           }
@@ -136,31 +177,32 @@
       document.execCommand('copy');
     }
 
+    function clearAll() {
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          board[row][col] = '';
+        }
+      }
+      renderBoard();
+      updateFEN();
+    }
+
     function handleKeyDown(e) {
       if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter',' '].includes(e.key)) {
         e.preventDefault();
       }
 
       switch (e.key) {
-        case 'ArrowUp':
-          selectedRow = Math.max(0, selectedRow - 1);
-          break;
-        case 'ArrowDown':
-          selectedRow = Math.min(7, selectedRow + 1);
-          break;
-        case 'ArrowLeft':
-          selectedCol = Math.max(0, selectedCol - 1);
-          break;
-        case 'ArrowRight':
-          selectedCol = Math.min(7, selectedCol + 1);
-          break;
+        case 'ArrowUp': selectedRow = Math.max(0, selectedRow - 1); break;
+        case 'ArrowDown': selectedRow = Math.min(7, selectedRow + 1); break;
+        case 'ArrowLeft': selectedCol = Math.max(0, selectedCol - 1); break;
+        case 'ArrowRight': selectedCol = Math.min(7, selectedCol + 1); break;
         case 'Enter':
         case ' ':
           board[selectedRow][selectedCol] = board[selectedRow][selectedCol] === selectedPiece ? '' : selectedPiece;
           updateFEN();
           break;
         default:
-          // Uppercase = White, Lowercase = Black
           const key = e.key;
           if (pieceMap[key]) {
             selectedPiece = key;
