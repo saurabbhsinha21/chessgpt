@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fast FEN Generator</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      width: 320px;
+      margin: 10px auto;
+      border: 2px solid #444;
+    }
+    .square {
+      width: 40px;
+      height: 40px;
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .white { background-color: #f0d9b5; }
+    .black { background-color: #b58863; }
+    #pieces {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 10px;
+    }
+    .piece-btn {
+      font-size: 26px;
+      margin: 4px;
+      padding: 5px 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .selected { border-color: red; }
+    #fen {
+      width: 95%;
+      margin-top: 10px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h3>⚡ Fast Chess FEN Generator</h3>
+
+  <div id="pieces"></div>
+  <div id="board"></div>
+
+  <input type="text" id="fen" readonly />
+  <button onclick="copyFEN()">📋 Copy FEN</button>
+
+  <script>
+    const board = Array(8).fill().map(() => Array(8).fill(''));
+    let selectedPiece = '';
+
+    const pieceMap = {
+      'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕', 'K': '♔',
+      'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚',
+      '': ''
+    };
+
+    const pieceOrder = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k', ''];
+
+    function createPieceButtons() {
+      const container = document.getElementById('pieces');
+      pieceOrder.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'piece-btn';
+        btn.textContent = pieceMap[p] || '⛔';
+        btn.onclick = () => {
+          selectedPiece = p;
+          document.querySelectorAll('.piece-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function renderBoard() {
+      const boardDiv = document.getElementById('board');
+      boardDiv.innerHTML = '';
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement('div');
+          square.className = `square ${(row + col) % 2 === 0 ? 'white' : 'black'}`;
+          square.textContent = pieceMap[board[row][col]];
+          square.onclick = () => {
+            if (board[row][col] === selectedPiece) {
+              board[row][col] = ''; // remove piece
+            } else {
+              board[row][col] = selectedPiece;
+            }
+            renderBoard();
+            updateFEN();
+          };
+          boardDiv.appendChild(square);
+        }
+      }
+    }
+
+    function updateFEN() {
+      const rows = board.map(row => {
+        let fenRow = '', empty = 0;
+        for (const sq of row) {
+          if (!sq) empty++;
+          else {
+            if (empty) { fenRow += empty; empty = 0; }
+            fenRow += sq;
+          }
+        }
+        if (empty) fenRow += empty;
+        return fenRow;
+      });
+      document.getElementById('fen').value = rows.join('/') + ' w KQkq - 0 1';
+    }
+
+    function copyFEN() {
+      const input = document.getElementById('fen');
+      input.select();
+      document.execCommand('copy');
+    }
+
+    createPieceButtons();
+    renderBoard();
+    updateFEN();
+  </script>
+</body>
+</html>
