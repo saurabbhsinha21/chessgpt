@@ -94,12 +94,14 @@
   <input type="text" id="fen" readonly />
   <button onclick="copyFEN()">📋 Copy FEN</button>
   <button onclick="clearBoard()">🧹 Clear All</button>
+  <button onclick="flipBoard()">🔄 Flip Board</button>
 
   <script>
     const board = Array.from({ length: 8 }, () => Array(8).fill(''));
     let selectedPiece = '';
     let selectedRow = 0;
     let selectedCol = 0;
+    let flipped = false;
 
     const pieceMap = {
       'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕', 'K': '♔',
@@ -128,8 +130,10 @@
     function renderBoard() {
       const boardDiv = document.getElementById('board');
       boardDiv.innerHTML = '';
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
+      const rowIndices = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
+      const colIndices = flipped ? [...Array(8).keys()].reverse() : [...Array(8).keys()];
+      for (const row of rowIndices) {
+        for (const col of colIndices) {
           const square = document.createElement('div');
           square.className = `square ${(row + col) % 2 === 0 ? 'white' : 'black'}`;
           if (row === selectedRow && col === selectedCol) {
@@ -178,8 +182,13 @@
       updateFEN();
     }
 
+    function flipBoard() {
+      flipped = !flipped;
+      renderBoard();
+    }
+
     function handleKeyDown(e) {
-      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter',' '].includes(e.key)) {
+      if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Enter"," "].includes(e.key)) {
         e.preventDefault();
       }
 
