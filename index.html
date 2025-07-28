@@ -6,11 +6,37 @@
   <title>Ultra Fast FEN Generator</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 10px; }
+    .board-container {
+      position: relative;
+      width: 385px;
+      margin: 10px auto;
+    }
+    .file-labels, .rank-labels {
+      position: absolute;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .file-labels {
+      top: 100%;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 5px;
+    }
+    .rank-labels {
+      top: 0;
+      left: -20px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5px 2px;
+    }
     #board {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
       width: 360px;
-      margin: 10px auto;
       border: 2px solid #444;
     }
     .square {
@@ -26,9 +52,7 @@
     }
     .white { background-color: #f0d9b5; }
     .black { background-color: #b58863; }
-    .selected-square {
-      outline: 3px solid red;
-    }
+    .selected-square { outline: 3px solid red; }
     #pieces {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -55,11 +79,17 @@
   </style>
 </head>
 <body>
-  <h2>♟️ Ultra-Fast Chess FEN Generator</h2>
-
+  <h2>♟ Ultra-Fast Chess FEN Generator</h2>
   <div id="pieces"></div>
-  <div id="board"></div>
-
+  <div class="board-container">
+    <div class="rank-labels">
+      <div>8</div><div>7</div><div>6</div><div>5</div><div>4</div><div>3</div><div>2</div><div>1</div>
+    </div>
+    <div id="board"></div>
+    <div class="file-labels">
+      <div>a</div><div>b</div><div>c</div><div>d</div><div>e</div><div>f</div><div>g</div><div>h</div>
+    </div>
+  </div>
   <input type="text" id="fen" readonly />
   <button onclick="copyFEN()">📋 Copy FEN</button>
 
@@ -142,25 +172,14 @@
       }
 
       switch (e.key) {
-        case 'ArrowUp':
-          selectedRow = Math.max(0, selectedRow - 1);
-          break;
-        case 'ArrowDown':
-          selectedRow = Math.min(7, selectedRow + 1);
-          break;
-        case 'ArrowLeft':
-          selectedCol = Math.max(0, selectedCol - 1);
-          break;
-        case 'ArrowRight':
-          selectedCol = Math.min(7, selectedCol + 1);
-          break;
+        case 'ArrowUp': selectedRow = Math.max(0, selectedRow - 1); break;
+        case 'ArrowDown': selectedRow = Math.min(7, selectedRow + 1); break;
+        case 'ArrowLeft': selectedCol = Math.max(0, selectedCol - 1); break;
+        case 'ArrowRight': selectedCol = Math.min(7, selectedCol + 1); break;
         case 'Enter':
-        case ' ':
-          board[selectedRow][selectedCol] = board[selectedRow][selectedCol] === selectedPiece ? '' : selectedPiece;
-          updateFEN();
-          break;
+        case ' ': board[selectedRow][selectedCol] = board[selectedRow][selectedCol] === selectedPiece ? '' : selectedPiece;
+                  updateFEN(); break;
         default:
-          // Uppercase = White, Lowercase = Black
           const key = e.key;
           if (pieceMap[key]) {
             selectedPiece = key;
