@@ -22,9 +22,13 @@
       justify-content: center;
       cursor: pointer;
       user-select: none;
+      box-sizing: border-box;
     }
     .white { background-color: #f0d9b5; }
     .black { background-color: #b58863; }
+    .selected-square {
+      outline: 3px solid red;
+    }
     #pieces {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -62,6 +66,8 @@
   <script>
     const board = Array.from({ length: 8 }, () => Array(8).fill(''));
     let selectedPiece = '';
+    let selectedRow = 0;
+    let selectedCol = 0;
 
     const pieceMap = {
       'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕', 'K': '♔',
@@ -94,6 +100,9 @@
         for (let col = 0; col < 8; col++) {
           const square = document.createElement('div');
           square.className = `square ${(row + col) % 2 === 0 ? 'white' : 'black'}`;
+          if (row === selectedRow && col === selectedCol) {
+            square.classList.add('selected-square');
+          }
           square.textContent = pieceMap[board[row][col]] || '';
           square.onclick = () => {
             board[row][col] = (board[row][col] === selectedPiece) ? '' : selectedPiece;
@@ -127,22 +136,43 @@
       document.execCommand('copy');
     }
 
-    function handleKeyPress(e) {
-      const key = e.key.toLowerCase();
-      const keyMap = {
-        'p': 'p', 'r': 'r', 'n': 'n', 'b': 'b', 'q': 'q', 'k': 'k',
-        'P': 'P', 'R': 'R', 'N': 'N', 'B': 'B', 'Q': 'Q', 'K': 'K',
-        '0': ''
-      };
-      if (keyMap[key]) {
-        selectedPiece = keyMap[key];
-        document.querySelectorAll('.piece-btn').forEach(b => {
-          b.classList.toggle('selected', b.dataset.piece === selectedPiece);
-        });
+    function handleKeyDown(e) {
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter',' '].includes(e.key)) {
+        e.preventDefault();
       }
+
+      switch (e.key) {
+        case 'ArrowUp':
+          selectedRow = Math.max(0, selectedRow - 1);
+          break;
+        case 'ArrowDown':
+          selectedRow = Math.min(7, selectedRow + 1);
+          break;
+        case 'ArrowLeft':
+          selectedCol = Math.max(0, selectedCol - 1);
+          break;
+        case 'ArrowRight':
+          selectedCol = Math.min(7, selectedCol + 1);
+          break;
+        case 'Enter':
+        case ' ':
+          board[selectedRow][selectedCol] = board[selectedRow][selectedCol] === selectedPiece ? '' : selectedPiece;
+          updateFEN();
+          break;
+        default:
+          // Uppercase = White, Lowercase = Black
+          const key = e.key;
+          if (pieceMap[key]) {
+            selectedPiece = key;
+            document.querySelectorAll('.piece-btn').forEach(b => {
+              b.classList.toggle('selected', b.dataset.piece === selectedPiece);
+            });
+          }
+      }
+      renderBoard();
     }
 
-    document.addEventListener('keydown', handleKeyPress);
+    document.addEventListener('keydown', handleKeyDown);
     createPieceButtons();
     renderBoard();
     updateFEN();
